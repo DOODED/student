@@ -49,13 +49,28 @@ class ExcelStudentDatabase:
 
             # Convert all values to string before adding to DataFrame
             new_student = {k: str(v) if pd.notnull(v) else '' for k, v in new_student.items()}
-
-            self.df = pd.concat([self.df, pd.DataFrame([new_student])],
-                                ignore_index=True)
+            self.df = pd.concat([self.df, pd.DataFrame([new_student])], ignore_index=True)
             self.save_database()
             return True
         except Exception as e:
             print(f"Error adding student: {e}")
+            return False
+
+    def update_student(self, student_id, **kwargs):
+        """Update existing student information"""
+        try:
+            student_mask = self.df['student_id'] == int(student_id)
+            if not any(student_mask):
+                raise ValueError("Student not found")
+
+            for key, value in kwargs.items():
+                if key in self.df.columns:
+                    self.df.loc[student_mask, key] = str(value)
+
+            self.save_database()
+            return True
+        except Exception as e:
+            print(f"Error updating student: {e}")
             return False
 
     def get_all_students(self):

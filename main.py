@@ -1,6 +1,6 @@
 import sys
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QMessageBox, QTableWidgetItem, QMainWindow, QDialog
+from PyQt5.QtWidgets import QMessageBox, QTableWidgetItem, QMainWindow, QDialog, QMenu
 from PyQt5.QtCore import Qt
 from excel_database import ExcelStudentDatabase
 
@@ -45,7 +45,6 @@ class AddStudentDialog(QDialog):
         button_layout = QtWidgets.QHBoxLayout()
         self.save_button = QtWidgets.QPushButton("Save")
         self.cancel_button = QtWidgets.QPushButton("Cancel")
-
         self.save_button.clicked.connect(self.save_student)
         self.cancel_button.clicked.connect(self.reject)
 
@@ -79,6 +78,94 @@ class AddStudentDialog(QDialog):
             QMessageBox.critical(self, "Error", f"Failed to add student: {str(e)}")
 
 
+class EditStudentDialog(QDialog):
+    def __init__(self, db, student_data, parent=None):
+        super().__init__(parent)
+        self.db = db
+        self.student_data = student_data
+        self.setupUi()
+        self.loadStudentData()
+
+    def setupUi(self):
+        self.setWindowTitle("Edit Student")
+        self.setFixedSize(400, 500)
+        layout = QtWidgets.QVBoxLayout()
+        form_layout = QtWidgets.QFormLayout()
+
+        # Create input fields
+        self.student_id = QtWidgets.QLineEdit()
+        self.student_id.setReadOnly(True)
+        self.first_name = QtWidgets.QLineEdit()
+        self.last_name = QtWidgets.QLineEdit()
+        self.gender = QtWidgets.QComboBox()
+        self.gender.addItems(["Male", "Female"])
+        self.dob = QtWidgets.QDateEdit()
+        self.email = QtWidgets.QLineEdit()
+        self.phone = QtWidgets.QLineEdit()
+        self.address = QtWidgets.QTextEdit()
+        self.status = QtWidgets.QComboBox()
+        self.status.addItems(["Active", "Inactive"])
+
+        # Add fields to form layout
+        form_layout.addRow("Student ID:", self.student_id)
+        form_layout.addRow("First Name:", self.first_name)
+        form_layout.addRow("Last Name:", self.last_name)
+        form_layout.addRow("Gender:", self.gender)
+        form_layout.addRow("Date of Birth:", self.dob)
+        form_layout.addRow("Email:", self.email)
+        form_layout.addRow("Phone:", self.phone)
+        form_layout.addRow("Address:", self.address)
+        form_layout.addRow("Status:", self.status)
+
+        # Buttons
+        button_layout = QtWidgets.QHBoxLayout()
+        self.save_button = QtWidgets.QPushButton("Save")
+        self.cancel_button = QtWidgets.QPushButton("Cancel")
+        self.save_button.clicked.connect(self.save_changes)
+        self.cancel_button.clicked.connect(self.reject)
+
+        button_layout.addWidget(self.save_button)
+        button_layout.addWidget(self.cancel_button)
+
+        layout.addLayout(form_layout)
+        layout.addLayout(button_layout)
+        self.setLayout(layout)
+
+    def loadStudentData(self):
+        self.student_id.setText(str(self.student_data['student_id']))
+        self.first_name.setText(str(self.student_data['first_name']))
+        self.last_name.setText(str(self.student_data['last_name']))
+        self.gender.setCurrentText(str(self.student_data['gender']))
+        from datetime import datetime
+        date = datetime.strptime(str(self.student_data['date_of_birth']), '%Y-%m-%d')
+        self.dob.setDate(date)
+        self.email.setText(str(self.student_data['email']))
+        self.phone.setText(str(self.student_data['phone']))
+        self.address.setText(str(self.student_data['address']))
+        self.status.setCurrentText(str(self.student_data['status']))
+
+    def save_changes(self):
+        try:
+            student_data = {
+                'first_name': self.first_name.text(),
+                'last_name': self.last_name.text(),
+                'gender': self.gender.currentText(),
+                'date_of_birth': self.dob.date().toPyDate(),
+                'email': self.email.text(),
+                'phone': self.phone.text(),
+                'address': self.address.toPlainText(),
+                'status': self.status.currentText()
+            }
+
+            if self.db.update_student(self.student_id.text(), **student_data):
+                QMessageBox.information(self, "Success", "Student updated successfully!")
+                self.accept()
+            else:
+                QMessageBox.critical(self, "Error", "Failed to update student")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to update student: {str(e)}")
+
+
 class StudentManagementSystem(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -88,12 +175,10 @@ class StudentManagementSystem(QMainWindow):
 
     def setupUi(self):
         self.setWindowTitle("Student Management System")
-        self.setFixedSize(400, 200)  # Initial login window size
-
+        self.setFixedSize(400, 200)
         central_widget = QtWidgets.QWidget()
         self.setCentralWidget(central_widget)
         layout = QtWidgets.QVBoxLayout(central_widget)
-
         self.stacked_widget = QtWidgets.QStackedWidget()
         layout.addWidget(self.stacked_widget)
 
@@ -101,16 +186,13 @@ class StudentManagementSystem(QMainWindow):
         login_page = QtWidgets.QWidget()
         login_layout = QtWidgets.QVBoxLayout(login_page)
         login_form = QtWidgets.QFormLayout()
-
         self.username_input = QtWidgets.QLineEdit()
         self.password_input = QtWidgets.QLineEdit()
         self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
-        # Add enter key functionality for login
         self.password_input.returnPressed.connect(self.handle_login)
 
         login_form.addRow("Username:", self.username_input)
         login_form.addRow("Password:", self.password_input)
-
         self.login_button = QtWidgets.QPushButton("Login")
         login_layout.addLayout(login_form)
         login_layout.addWidget(self.login_button)
@@ -127,10 +209,8 @@ class StudentManagementSystem(QMainWindow):
             "Date of Birth", "Email", "Phone", "Address", "Status"
         ])
         self.search_input = QtWidgets.QLineEdit()
-        # Add enter key functionality for search
         self.search_input.returnPressed.connect(self.search_students)
         self.search_button = QtWidgets.QPushButton("Search")
-
         search_layout.addWidget(self.search_combo)
         search_layout.addWidget(self.search_input)
         search_layout.addWidget(self.search_button)
@@ -143,12 +223,17 @@ class StudentManagementSystem(QMainWindow):
             "DOB", "Email", "Phone", "Address", "Status"
         ])
 
+        # Set table properties
+        self.student_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.student_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.student_table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.student_table.customContextMenuRequested.connect(self.show_context_menu)
+
         # Buttons
         button_layout = QtWidgets.QHBoxLayout()
         self.add_button = QtWidgets.QPushButton("Add Student")
         self.delete_button = QtWidgets.QPushButton("Delete Student")
         self.refresh_button = QtWidgets.QPushButton("Refresh")
-
         button_layout.addWidget(self.add_button)
         button_layout.addWidget(self.delete_button)
         button_layout.addWidget(self.refresh_button)
@@ -161,6 +246,40 @@ class StudentManagementSystem(QMainWindow):
         self.stacked_widget.addWidget(main_page)
         self.stacked_widget.setCurrentIndex(0)
 
+    def show_context_menu(self, position):
+        selected_items = self.student_table.selectedItems()
+        if not selected_items:
+            return
+
+        context_menu = QMenu()
+        edit_action = context_menu.addAction("Edit")
+        action = context_menu.exec_(self.student_table.mapToGlobal(position))
+
+        if action == edit_action:
+            self.edit_student()
+
+    def edit_student(self):
+        selected_items = self.student_table.selectedItems()
+        if not selected_items:
+            return
+
+        row = selected_items[0].row()
+        student_data = {
+            'student_id': self.student_table.item(row, 0).text(),
+            'first_name': self.student_table.item(row, 1).text(),
+            'last_name': self.student_table.item(row, 2).text(),
+            'gender': self.student_table.item(row, 3).text(),
+            'date_of_birth': self.student_table.item(row, 4).text(),
+            'email': self.student_table.item(row, 5).text(),
+            'phone': self.student_table.item(row, 6).text(),
+            'address': self.student_table.item(row, 7).text(),
+            'status': self.student_table.item(row, 8).text()
+        }
+
+        dialog = EditStudentDialog(self.db, student_data, self)
+        if dialog.exec_() == QDialog.Accepted:
+            self.load_student_data()
+
     def setup_connections(self):
         self.login_button.clicked.connect(self.handle_login)
         self.add_button.clicked.connect(self.show_add_dialog)
@@ -170,7 +289,7 @@ class StudentManagementSystem(QMainWindow):
 
     def handle_login(self):
         if self.username_input.text() == "admin" and self.password_input.text() == "admin123":
-            self.setFixedSize(1200, 800)  # Resize window after login
+            self.setFixedSize(1200, 800)
             self.stacked_widget.setCurrentIndex(1)
             self.load_student_data()
         else:
@@ -226,8 +345,10 @@ class StudentManagementSystem(QMainWindow):
             match = False
             col_idx = self.get_column_index(search_column)
             item = self.student_table.item(row, col_idx)
+
             if item and search_text in item.text().lower():
                 match = True
+
             self.student_table.setRowHidden(row, not match)
 
     def get_column_index(self, column_name):
