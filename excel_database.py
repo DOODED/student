@@ -4,30 +4,29 @@ import re
 
 class ExcelStudentDatabase:
     def __init__(self, excel_file='student_database.xlsx'):
-        """Initialize Excel database connection"""
         self.excel_file = excel_file
         try:
             self.df = pd.read_excel(self.excel_file)
         except FileNotFoundError:
-            # Create new Excel file if it doesn't exist
             self.df = pd.DataFrame(columns=[
-                'student_id', 'first_name', 'last_name', 'date_of_birth',
-                'email', 'phone', 'address', 'enrollment_date', 'status'
+                'student_id', 'first_name', 'last_name', 'gender',
+                'date_of_birth', 'email', 'phone', 'address',
+                'enrollment_date', 'status'
             ])
             self.save_database()
 
     def save_database(self):
-        """Save changes to Excel file"""
         self.df.to_excel(self.excel_file, index=False)
 
-    def add_student(self, first_name, last_name, date_of_birth, email, phone, address):
-        """Add a new student to the database"""
+    def add_student(self, first_name, last_name, gender, date_of_birth,
+                   email, phone, address):
         try:
             new_id = 1 if self.df.empty else self.df['student_id'].max() + 1
             new_student = {
                 'student_id': new_id,
                 'first_name': first_name,
                 'last_name': last_name,
+                'gender': gender,
                 'date_of_birth': date_of_birth,
                 'email': email,
                 'phone': phone,
@@ -35,19 +34,18 @@ class ExcelStudentDatabase:
                 'enrollment_date': datetime.now().strftime('%Y-%m-%d'),
                 'status': 'Active'
             }
-            self.df = pd.concat([self.df, pd.DataFrame([new_student])], ignore_index=True)
+            self.df = pd.concat([self.df, pd.DataFrame([new_student])],
+                              ignore_index=True)
             self.save_database()
-            return new_id
+            return True
         except Exception as e:
             print(f"Error adding student: {e}")
-            return None
+            return False
 
     def get_all_students(self):
-        """Get all students from database"""
         return self.df.to_dict('records')
 
     def delete_student(self, student_id):
-        """Delete student from database"""
         try:
             self.df = self.df[self.df['student_id'] != student_id]
             self.save_database()
@@ -56,33 +54,29 @@ class ExcelStudentDatabase:
             print(f"Error deleting student: {e}")
             return False
 
-    def search_students(self, search_term):
-        """Search students by name or email"""
+    def search_students(self, search_term, column=None):
         try:
-            return self.df[
-                self.df['first_name'].str.contains(search_term, case=False, na=False) |
-                self.df['last_name'].str.contains(search_term, case=False, na=False) |
-                self.df['email'].str.contains(search_term, case=False, na=False)
-            ].to_dict('records')
+            if column and column in self.df.columns:
+                return self.df[
+                    self.df[column].astype(str).str.contains(
+                        str(search_term), case=False, na=False
+                    )
+                ].to_dict('records')
+            else:
+                mask = pd.Series(False, index=self.df.index)
+                for col in self.df.columns:
+                    mask |= self.df[col].astype(str).str.contains(
+                        str(search_term), case=False, na=False
+                    )
+                return self.df[mask].to_dict('records')
         except Exception as e:
             print(f"Error searching students: {e}")
             return []
 
-    def backup_database(self, backup_filename):
-        """Create a backup of the database"""
-        try:
-            self.df.to_excel(backup_filename, index=False)
-            return True
-        except Exception as e:
-            print(f"Backup error: {e}")
-            return False
+    def validate_email(self, email):
+        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        return bool(re.match(pattern, email))
 
-    def restore_database(self, backup_filename):
-        """Restore database from backup"""
-        try:
-            self.df = pd.read_excel(backup_filename)
-            self.save_database()
-            return True
-        except Exception as e:
-            print(f"Restore error: {e}")
-            return False
+    def validate_phone(self, phone):
+        pattern = r'^\+?1?\d{9,15}$'
+        return bool(re.match(pattern, phone))

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>StudentManagementSystem</class>
- <widget class="QMainWindow" name="StudentManagementSystem">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,26 +13,197 @@
   <property name="windowTitle">
    <string>Student Management System</string>
   </property>
-  <widget class="QStackedWidget" name="stackedWidget">
-   <widget class="QWidget" name="loginPage">
-    <!-- Login page content -->
-    <layout class="QVBoxLayout" name="loginLayout">
-      <item>
-       <widget class="QLabel" name="loginTitle">
-        <property name="text">
-         <string>Admin Login</string>
-        </property>
-       </widget>
-      </item>
-      <!-- Add login form elements -->
-    </layout>
-   </widget>
-   <widget class="QWidget" name="mainPage">
-    <!-- Main page content -->
-    <layout class="QVBoxLayout" name="mainLayout">
-      <!-- Add main page elements -->
-    </layout>
-   </widget>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QStackedWidget" name="stackedWidget">
+      <!-- Login Page -->
+      <widget class="QWidget" name="loginPage">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QFormLayout" name="formLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Username:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="username_input"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Password:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="password_input">
+            <property name="echoMode">
+             <enum>QLineEdit::Password</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="login_button">
+          <property name="text">
+           <string>Login</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <!-- Main Page -->
+      <widget class="QWidget" name="mainPage">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QComboBox" name="search_combo">
+            <item>
+             <property name="text">
+              <string>ID</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>First Name</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Last Name</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Gender</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Date of Birth</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Email</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Phone</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Address</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Status</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="search_input"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="search_button">
+            <property name="text">
+             <string>Search</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="student_table">
+          <column>
+           <property name="text">
+            <string>ID</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>First Name</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Last Name</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Gender</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>DOB</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Email</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Phone</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Address</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Status</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QPushButton" name="add_button">
+            <property name="text">
+             <string>Add Student</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="delete_button">
+            <property name="text">
+             <string>Delete Student</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="refresh_button">
+            <property name="text">
+             <string>Refresh</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
+ <resources/>
+ <connections/>
 </ui>
