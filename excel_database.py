@@ -2,7 +2,6 @@ import pandas as pd
 from datetime import datetime
 import re
 
-
 class ExcelStudentDatabase:
     def __init__(self, excel_file='student_database.xlsx'):
         """Initialize Excel database connection"""
@@ -23,7 +22,7 @@ class ExcelStudentDatabase:
         self.df.to_excel(self.excel_file, index=False)
 
     def add_student(self, student_id, first_name, last_name, gender,
-                    date_of_birth, email, phone, address, status='Active'):
+                   date_of_birth, email, phone, address, status='Active'):
         """Add a new student to the database"""
         try:
             # If no student_id provided, generate new one
@@ -63,8 +62,10 @@ class ExcelStudentDatabase:
             if not any(student_mask):
                 raise ValueError("Student not found")
 
+            # Update only the fields that are provided
             for key, value in kwargs.items():
                 if key in self.df.columns:
+                    # Convert value to string before updating
                     self.df.loc[student_mask, key] = str(value)
 
             self.save_database()
