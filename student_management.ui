@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>StudentManagementSystem</class>
+ <widget class="QMainWindow" name="StudentManagementSystem">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1200</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Student Management System</string>
+  </property>
+  <widget class="QStackedWidget" name="stackedWidget">
+   <widget class="QWidget" name="loginPage">
+    <!-- Login page content -->
+    <layout class="QVBoxLayout" name="loginLayout">
+      <item>
+       <widget class="QLabel" name="loginTitle">
+        <property name="text">
+         <string>Admin Login</string>
+        </property>
+       </widget>
+      </item>
+      <!-- Add login form elements -->
+    </layout>
+   </widget>
+   <widget class="QWidget" name="mainPage">
+    <!-- Main page content -->
+    <layout class="QVBoxLayout" name="mainLayout">
+      <!-- Add main page elements -->
+    </layout>
+   </widget>
+  </widget>
+ </widget>
+</ui>
