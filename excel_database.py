@@ -2,12 +2,15 @@ import pandas as pd
 from datetime import datetime
 import re
 
+
 class ExcelStudentDatabase:
     def __init__(self, excel_file='student_database.xlsx'):
         """Initialize Excel database connection"""
         self.excel_file = excel_file
         try:
             self.df = pd.read_excel(self.excel_file)
+            # Convert student_id column to integer type
+            self.df['student_id'] = self.df['student_id'].astype(int)
         except FileNotFoundError:
             # Create new Excel file if it doesn't exist
             self.df = pd.DataFrame(columns=[
@@ -22,12 +25,15 @@ class ExcelStudentDatabase:
         self.df.to_excel(self.excel_file, index=False)
 
     def add_student(self, student_id, first_name, last_name, gender,
-                   date_of_birth, email, phone, address, status='Active'):
+                    date_of_birth, email, phone, address, status='Active'):
         """Add a new student to the database"""
         try:
             # If no student_id provided, generate new one
             if student_id is None:
                 student_id = 1 if self.df.empty else self.df['student_id'].max() + 1
+
+            # Convert student_id to integer
+            student_id = int(student_id)
 
             # Check if ID already exists
             if not self.df.empty and student_id in self.df['student_id'].values:
@@ -48,6 +54,8 @@ class ExcelStudentDatabase:
 
             # Convert all values to string before adding to DataFrame
             new_student = {k: str(v) if pd.notnull(v) else '' for k, v in new_student.items()}
+            new_student['student_id'] = int(student_id)  # Keep student_id as integer
+
             self.df = pd.concat([self.df, pd.DataFrame([new_student])], ignore_index=True)
             self.save_database()
             return True
@@ -58,14 +66,16 @@ class ExcelStudentDatabase:
     def update_student(self, student_id, **kwargs):
         """Update existing student information"""
         try:
-            student_mask = self.df['student_id'] == int(student_id)
+            # Convert student_id to integer for comparison
+            student_id = int(student_id)
+            student_mask = self.df['student_id'] == student_id
+
             if not any(student_mask):
                 raise ValueError("Student not found")
 
             # Update only the fields that are provided
             for key, value in kwargs.items():
                 if key in self.df.columns:
-                    # Convert value to string before updating
                     self.df.loc[student_mask, key] = str(value)
 
             self.save_database()
@@ -74,21 +84,31 @@ class ExcelStudentDatabase:
             print(f"Error updating student: {e}")
             return False
 
-    def get_all_students(self):
-        """Get all students from database"""
-        # Convert all values to string before returning
-        df_str = self.df.astype(str)
-        return df_str.to_dict('records')
-
     def delete_student(self, student_id):
         """Delete student from database"""
         try:
+            # Convert student_id to integer for comparison
+            student_id = int(student_id)
+            initial_len = len(self.df)
             self.df = self.df[self.df['student_id'] != student_id]
+
+            if len(self.df) == initial_len:
+                return False
+
             self.save_database()
             return True
         except Exception as e:
             print(f"Error deleting student: {e}")
             return False
+
+    def get_all_students(self):
+        """Get all students from database"""
+        # Convert all values to string except student_id
+        df_copy = self.df.copy()
+        for col in df_copy.columns:
+            if col != 'student_id':
+                df_copy[col] = df_copy[col].astype(str)
+        return df_copy.to_dict('records')
 
     def search_students(self, search_term, column=None):
         """Search students by any column"""
@@ -105,8 +125,11 @@ class ExcelStudentDatabase:
                 for col in self.df.columns:
                     mask |= self.df[col].astype(str).str.lower().str.contains(search_term, na=False)
 
-            # Convert results to string before returning
-            result_df = self.df[mask].astype(str)
+            result_df = self.df[mask].copy()
+            # Convert all values to string except student_id
+            for col in result_df.columns:
+                if col != 'student_id':
+                    result_df[col] = result_df[col].astype(str)
             return result_df.to_dict('records')
         except Exception as e:
             print(f"Error searching students: {e}")
@@ -135,6 +158,7 @@ class ExcelStudentDatabase:
         """Restore database from backup"""
         try:
             self.df = pd.read_excel(backup_filename)
+            self.df['student_id'] = self.df['student_id'].astype(int)
             self.save_database()
             return True
         except Exception as e:
